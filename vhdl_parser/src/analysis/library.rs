@@ -12,8 +12,8 @@ use std::collections::hash_map::Entry;
 
 use crate::ast::{
     AnyDesignUnit, ArchitectureBody, ConfigurationDeclaration, ContextDeclaration, DesignFile,
-    DesignUnit, Designator, EntityDeclaration, HasIdent, Ident, PackageBody, PackageDeclaration,
-    PackageInstantiation, PrimaryUnit, SecondaryUnit, SelectedName,
+    DesignUnit, Designator, DesignatorRef, EntityDeclaration, HasIdent, Ident, PackageBody,
+    PackageDeclaration, PackageInstantiation, PrimaryUnit, SecondaryUnit, SelectedName,
 };
 use crate::diagnostic::{Diagnostic, DiagnosticHandler};
 use crate::source::{SrcPos, WithPos};
@@ -381,17 +381,28 @@ fn to_entity_name(
         SelectedName::Selected(
             ref prefix,
             WithPos {
-                item: Designator::Identifier(ref sym),
+                item:
+                    DesignatorRef {
+                        name: Designator::Identifier(ref sym),
+                        ..
+                    },
                 ref pos,
             },
         ) => {
-            if let SelectedName::Designator(Designator::Identifier(ref lib_sym)) = prefix.item {
+            if let SelectedName::Designator(DesignatorRef {
+                name: Designator::Identifier(ref lib_sym),
+                ..
+            }) = prefix.item
+            {
                 let library_name = WithPos::from(lib_sym.clone(), prefix.pos.clone());
                 let entity_name = WithPos::from(sym.clone(), pos.clone());
                 return Ok((Some(library_name), entity_name));
             }
         }
-        SelectedName::Designator(Designator::Identifier(ref sym)) => {
+        SelectedName::Designator(DesignatorRef {
+            name: Designator::Identifier(ref sym),
+            ..
+        }) => {
             return Ok((None, WithPos::from(sym.clone(), selected_name.pos.clone())));
         }
         _ => {}

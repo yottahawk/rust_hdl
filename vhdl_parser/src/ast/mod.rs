@@ -9,12 +9,10 @@
 #![allow(clippy::large_enum_variant)]
 
 mod display;
-mod has_ident;
-mod name;
+mod name_util;
 
 pub use self::display::*;
-pub use self::has_ident::*;
-pub use self::name::*;
+pub use self::name_util::*;
 
 use crate::latin_1::Latin1String;
 use crate::source::WithPos;
@@ -127,8 +125,8 @@ pub struct ExternalName {
 /// LRM 8. Names
 #[derive(PartialEq, Debug, Clone)]
 pub enum Name {
-    Designator(Designator),
-    Selected(Box<WithPos<Name>>, WithPos<Designator>),
+    Designator(DesignatorRef),
+    Selected(Box<WithPos<Name>>, WithPos<DesignatorRef>),
     SelectedAll(Box<WithPos<Name>>),
     Indexed(Box<WithPos<Name>>, Vec<WithPos<Expression>>),
     Slice(Box<WithPos<Name>>, DiscreteRange),
@@ -141,8 +139,8 @@ pub enum Name {
 /// A subset of a full name allowing only selected name
 #[derive(PartialEq, Debug, Clone)]
 pub enum SelectedName {
-    Designator(Designator),
-    Selected(Box<WithPos<SelectedName>>, WithPos<Designator>),
+    Designator(DesignatorRef),
+    Selected(Box<WithPos<SelectedName>>, WithPos<DesignatorRef>),
 }
 
 /// LRM 9.3.4 Function calls
@@ -343,6 +341,13 @@ pub enum Designator {
     Identifier(Symbol),
     OperatorSymbol(Latin1String),
     Character(u8),
+}
+
+/// A potential reference to a declaration
+#[derive(PartialEq, Debug, Clone)]
+pub struct DesignatorRef {
+    pub name: Designator,
+    // @TODO add reference
 }
 
 /// LRM 6.6 Alias declarations

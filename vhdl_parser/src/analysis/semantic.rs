@@ -289,7 +289,7 @@ impl<'a> Analyzer<'a> {
                 match visible_decl.first() {
                     AnyDeclaration::Library(ref library_name) => {
                         if let Some(visible_decl) =
-                            self.library_regions[library_name].lookup(&suffix.item, false)
+                            self.library_regions[library_name].lookup(suffix.designator(), false)
                         {
                             Ok(LookupResult::Single(visible_decl.clone()))
                         } else {
@@ -322,7 +322,9 @@ impl<'a> Analyzer<'a> {
                         } else if let Ok(data) =
                             self.get_package_result(Some(prefix.pos.clone()), library, package)
                         {
-                            if let Some(visible_decl) = data.region.lookup(&suffix.item, false) {
+                            if let Some(visible_decl) =
+                                data.region.lookup(suffix.designator(), false)
+                            {
                                 Ok(LookupResult::Single(visible_decl.clone()))
                             } else {
                                 Err(Diagnostic::error(
@@ -356,7 +358,9 @@ impl<'a> Analyzer<'a> {
                             library,
                             instance,
                         ) {
-                            if let Some(visible_decl) = data.region.lookup(&suffix.item, false) {
+                            if let Some(visible_decl) =
+                                data.region.lookup(suffix.designator(), false)
+                            {
                                 Ok(LookupResult::Single(visible_decl.clone()))
                             } else {
                                 Err(Diagnostic::error(
@@ -376,7 +380,7 @@ impl<'a> Analyzer<'a> {
                     }
 
                     AnyDeclaration::LocalPackageInstance(ref instance_name, ref data) => {
-                        if let Some(visible_decl) = data.region.lookup(&suffix.item, false) {
+                        if let Some(visible_decl) = data.region.lookup(suffix.designator(), false) {
                             Ok(LookupResult::Single(visible_decl.clone()))
                         } else {
                             Err(Diagnostic::error(
@@ -403,13 +407,13 @@ impl<'a> Analyzer<'a> {
                 )),
                 others => Ok(others),
             },
-            Name::Designator(ref designator) => {
-                if let Some(visible_item) = region.lookup(&designator, true) {
+            Name::Designator(ref designator_ref) => {
+                if let Some(visible_item) = region.lookup(designator_ref.designator(), true) {
                     Ok(LookupResult::Single(visible_item.clone()))
                 } else {
                     Err(Diagnostic::error(
                         &name.pos,
-                        format!("No declaration of '{}'", designator),
+                        format!("No declaration of '{}'", designator_ref),
                     ))
                 }
             }
@@ -906,7 +910,7 @@ impl<'a> Analyzer<'a> {
                                                 &suffix,
                                                 format!(
                                                     "'{}' does not denote a context declaration",
-                                                    &suffix.item
+                                                    suffix.designator()
                                                 ),
                                             ));
                                         }
